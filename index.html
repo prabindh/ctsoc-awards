@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<title>Creative Arts Museum</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+	<link rel=stylesheet href="css/base.css"/>
+</head>
+<body>
+
+<script src="js/Detector.js"></script>
+<script src="js/THREEx.FullScreen.js"></script>
+<script src="js/THREEx.WindowResize.js"></script>
+<script src="js/tween.umd.js"></script>
+
+<div id="div3d" style="position: absolute; left:0px; top:0px"></div>
+
+<script type="module">
+
+import * as THREE from './js/three.module.js';
+import { OBJLoader } from './js/OBJLoader.js';
+import { OrbitControls } from "./js/OrbitControls.js";
+import { Projector } from "./js/Projector.js";
+
+var clickables = new Array();
+
+var frame1;
+var frame2;
+var galleria;
+var tweenAnimator;
+var focuslight1;
+var previewer;
+var previewerMaterial;
+var previewerMapper = {};
+var moreinfo, moreinfoMaterial;
+var container, scene, camera;
+var infoLink = "https://ewh.ieee.org/r10/bangalore/ces/";
+var renderer, controls;
+
+init();
+animate();
+
+
+// Creator for scalable objects
+function addNewElement(loader, objPath, name, clickable, frameTexture, imageTexture, x, y, z, scale)
+{
+	loader.load( objPath, function ( obj ) {
+		obj.traverse( function ( child ) {
+			if ( child.isMesh ) 
+			{
+				//console.log('name of child = ', child.name)
+				if (child.name === "Plane")
+				{
+					child.userData["state"] = "original";
+					child.material.map = imageTexture;
+				}
+				else
+				{
+					child.material.map = frameTexture;
+				}
+				child.material.side = THREE.DoubleSide;
+			}
+		} );
+		obj.position.x = x;		
+		obj.position.y = y;
+		obj.position.z = z;
+		obj.scale.set(scale, scale, scale);
+
+		obj.name = name;
+		
+		scene.add( obj );
+		if (clickable === true)
+		{
+			//console.log("clickables added ", obj);
+			clickables.push( obj );
+		}
+	});
+}
+
+// Manage info clicks
+document.addEventListener( 'mousedown', onDocumentMouseDown, false );
+function onDocumentMouseDown( event ) {
+
+    event.preventDefault();
+	var projector = new Projector();
+
+    var vector = new THREE.Vector3(
+        ( event.clientX / window.innerWidth ) * 2 - 1,
+      - ( event.clientY / window.innerHeight ) * 2 + 1,
+        0.5
+    );
+    vector.unproject( camera );
+
+    var ray = new THREE.Raycaster( camera.position, 
+                             vector.sub( camera.position ).normalize() );
+
+    var intersects = ray.intersectObjects( clickables, true );
+    if ( intersects.length > 0)
+	{
+		if(intersects[0].object.name === "Plane") 
+		{
+
+			console.log("clicked object " + intersects[0].object.parent.name);
+
+			previewerMaterial = new THREE.MeshStandardMaterial({
+				map: previewerMapper[intersects[0].object.parent.name],
+			});
+			previewer.material = previewerMaterial;
+			previewer.position.set(0,100,-100);
+			previewer.visible = true;
+			
+			moreinfo.position.set(0,100,10);
+			moreinfo.visible = true;
+		}
+		else if(intersects[0].object.name === "previewer")
+		{
+			console.log("clicked previewer");
+			previewer.visible = false;
+			previewer.position.set(0,100,-10000);
+			
+			moreinfo.position.set(0,100,-10000);
+			moreinfo.visible = false;
+		}
+		else if(intersects[0].object.name === "moreinfo")
+		{
+			console.log("clicked moreinfo");
+			
+			previewer.visible = false;
+			previewer.position.set(0,100,-10000);
+			
+			moreinfo.position.set(0,100,-10000);
+			moreinfo.visible = false;
+			// avoid evnt skipping
+			setTimeout(function() { window.open(infoLink, "More Info"); }, 100);
+		}		
+    }
+}
+
+function init() 
+{
+	// version = 130dev
+	// console.log("version ", THREE.REVISION)
+	// setup scene
+	scene = new THREE.Scene();
+
+	camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 0.1, 20000);
+	scene.add(camera);
+	camera.position.set(-80,200,700);
+	camera.lookAt(scene.position);	
+	
+	// setup the renderer
+	if ( Detector.webgl )
+		renderer = new THREE.WebGLRenderer( {antialias:true} );
+	else
+		renderer = new THREE.CanvasRenderer(); 
+	renderer.setSize(window.innerWidth, window.innerHeight);
+	container = document.getElementById( 'div3d' );
+	container.appendChild( renderer.domElement );
+
+	THREEx.WindowResize(renderer, camera);
+	
+	// not using controls for now
+	controls = new OrbitControls( camera, renderer.domElement );
+  
+	var light = new THREE.PointLight(0xffffff);
+	light.position.set(0,550,200);
+	scene.add(light);
+	
+	// floor/walls
+	var floorTexture = new THREE.TextureLoader().load( 'images/textcolor.png' );
+	floorTexture.wrapS = floorTexture.wrapT = THREE.RepeatWrapping; 
+	floorTexture.repeat.set( 10, 10 );
+	var floorMaterial = new THREE.MeshBasicMaterial( { map: floorTexture, side: THREE.DoubleSide } );	
+	
+	// lighting skybox (yellowish)
+	scene.fog = new THREE.FogExp2( 0xFEBE10, 0.00015 );
+	
+	// Load all image textures		
+	var imageTexture1 = new THREE.TextureLoader().load( 'images/certif1.png' );
+	var imageTexture2 = new THREE.TextureLoader().load( 'images/certif1.png' );
+	var tableTexture = new THREE.TextureLoader().load( 'images/lava.jpg' );
+	var textColorTexture = new THREE.TextureLoader().load( 'images/textcolor.png' );
+	var moreinfoTexture = new THREE.TextureLoader().load( 'images/moreinfo.png' );
+	
+	// OBJ model manager
+	const loader = new OBJLoader( );
+	
+	// OBJ model Photoframes 
+	addNewElement(loader, 'models/simpleframe.obj', "picture1", true, floorTexture, imageTexture1, 0, -250, -580, 3);
+	addNewElement(loader, 'models/simpleframe.obj', "picture2", true, floorTexture, imageTexture2, 570, -200, -580, 3);
+	addNewElement(loader, 'models/simpleframe.obj', "picture3", true, floorTexture, imageTexture2, -570, -200, -580, 3);
+	addNewElement(loader, 'models/simpleframe.obj', "picture4", true, floorTexture, imageTexture2, -270, 200, -580, 3);
+	addNewElement(loader, 'models/simpleframe.obj', "picture5", true, floorTexture, imageTexture2, 370, 200, -580, 3);
+	// Text
+	addNewElement(loader, 'models/text.obj', "text1", false, textColorTexture, textColorTexture, -250, -150, 10, 1);
+	// Viewing Table Primary
+	//addNewElement(loader, 'models/table.obj', "table", false, tableTexture, tableTexture, -120, -150, -500, 3);
+	// OBJ model galleria
+	addNewElement(loader, 'models/galleria.obj', "galleria", false, floorTexture, null, 0, 0, 0, 10);
+	// bust1
+	addNewElement(loader, 'models/spartan.obj', "spartan1", false, floorTexture, floorTexture, -3000, 850, -5580, 2);
+	addNewElement(loader, 'models/spartan.obj', "spartan2", false, floorTexture, floorTexture, -3000, 750, -2080, 2);
+	
+	// Map pictures and names
+	previewerMapper["picture1"] = imageTexture1;
+	previewerMapper["picture2"] = imageTexture2;
+	previewerMapper["picture3"] = imageTexture2;
+	previewerMapper["picture4"] = imageTexture2;
+	previewerMapper["picture5"] = imageTexture2;
+	
+	// Add fullscreen preview hidden element
+	var previewerGeo = new THREE.PlaneGeometry( 1920, 1080 );
+	previewerMaterial = new THREE.MeshStandardMaterial({
+		map: imageTexture1,
+	});
+    previewer = new THREE.Mesh( previewerGeo );
+	previewer.material = previewerMaterial;
+	previewer.name = "previewer";
+	previewer.position.set(0,100,-10000);
+	previewer.visible = false;
+	scene.add( previewer );
+	clickables.push(previewer);
+	
+	// Add more info clickable
+	
+	var moreinfoGeo = new THREE.PlaneGeometry( 256, 128 );
+	moreinfoMaterial = new THREE.MeshStandardMaterial({
+		map: moreinfoTexture,
+	});
+    moreinfo = new THREE.Mesh( moreinfoGeo );
+	moreinfo.material = moreinfoMaterial;
+	moreinfo.name = "moreinfo";
+	moreinfo.position.set(0,100,-10000);
+	moreinfo.visible = false;
+	scene.add( moreinfo );
+	clickables.push(moreinfo);
+}
+
+function animate() 
+{
+    requestAnimationFrame( animate );
+	TWEEN.update();
+	render();		
+	update();
+}
+
+function update()
+{
+	controls.update();
+}
+
+function render() 
+{
+	renderer.render( scene, camera );
+}
+
+</script>
+
+</body>
+</html>

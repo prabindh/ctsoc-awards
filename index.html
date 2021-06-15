@@ -53,12 +53,17 @@ function addNewElement(loader, objPath, name, clickable, frameTexture, imageText
 				{
 					child.userData["state"] = "original";
 					child.material.map = imageTexture;
+					 
 				}
 				else
 				{
-					child.material.map = frameTexture;
+				  child.material = new THREE.MeshStandardMaterial({
+					color: "#755",
+					map: frameTexture
+				  });
 				}
 				child.material.side = THREE.DoubleSide;
+				child.material.needsUpdate = true;				
 			}
 		} );
 		obj.position.x = x;		
@@ -209,11 +214,11 @@ function init()
 	const loader = new OBJLoader( );		
 	
 	// OBJ model Photoframes 
-	var loader1 = new MyObjLoader(loader, 'models/simpleframe.obj', "picture1", true, 'images/textcolor.png', 'images/certif1.png', 0, -250, -580, 3).load();
-	var loader2 = new MyObjLoader(loader, 'models/simpleframe.obj', "picture2", true, 'images/textcolor.png', 'images/certif1.png', 570, -200, -580, 3).load();
-	var loader3 = new MyObjLoader(loader, 'models/simpleframe.obj', "picture3", true, 'images/textcolor.png', 'images/certif1.png', -570, -200, -580, 3).load();
-	var loader4 = new MyObjLoader(loader, 'models/simpleframe.obj', "picture4", true, 'images/textcolor.png', 'images/certif1.png', -270, 200, -580, 3).load();
-	var loader5 = new MyObjLoader(loader, 'models/simpleframe.obj', "picture5", true, 'images/textcolor.png', 'images/certif1.png', 370, 200, -580, 3).load();
+	var loader1 = new MyObjLoader(loader, 'models/simpleframe.obj', "picture1", true, 'images/brown.png', 'images/certif1.png', 0, -250, -580, 3).load();
+	var loader2 = new MyObjLoader(loader, 'models/simpleframe.obj', "picture2", true, 'images/brown.png', 'images/certif1.png', 570, -200, -580, 3).load();
+	var loader3 = new MyObjLoader(loader, 'models/simpleframe.obj', "picture3", true, 'images/brown.png', 'images/certif1.png', -570, -200, -580, 3).load();
+	var loader4 = new MyObjLoader(loader, 'models/simpleframe.obj', "picture4", true, 'images/brown.png', 'images/certif1.png', -270, 200, -580, 3).load();
+	var loader5 = new MyObjLoader(loader, 'models/simpleframe.obj', "picture5", true, 'images/brown.png', 'images/certif1.png', 370, 200, -580, 3).load();
 	// Text
 	var loader6 = new MyObjLoader(loader, 'models/text.obj', "text1", false, 'images/textcolor.png', 'images/textcolor.png', -250, -150, 10, 1).load();
 	// Viewing Table Primary
@@ -224,9 +229,18 @@ function init()
 	var loader9 = new MyObjLoader(loader, 'models/spartan.obj', "spartan1", false, 'images/textcolor.png', 'images/textcolor.png', -3000, 850, -5580, 2).load();
 	var loader10 = new MyObjLoader(loader, 'models/spartan.obj', "spartan2", false, 'images/textcolor.png', 'images/textcolor.png', -3000, 750, -2080, 2).load();
 	
-	var light = new THREE.PointLight(0xffffff);
-	light.position.set(-100,550,200);
+	//var light1 = new THREE.PointLight(0xffffff);
+	//light1.position.set(-100,-550,200);
+	//scene.add(light1);
+	//const light = new THREE.AmbientLight(0xffffff, 0.5);
+	//scene.add(light);
+	const color = 0xFFFFFF;
+	const intensity = 0.9;
+	const light = new THREE.DirectionalLight(color, intensity);
+	light.position.set(500, 850, 600);
+	light.target.position.set(-5, -500, -600);
 	scene.add(light);
+	scene.add(light.target);
 	
 
 	// Add fullscreen preview hidden element

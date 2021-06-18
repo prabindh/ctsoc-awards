@@ -42,7 +42,7 @@ animate();
 
 
 // Creator for scalable objects
-function addNewElement(loader, objPath, name, clickable, frameTexture, imageTexture, x, y, z, scale)
+function addNewElement(loader, objPath, name, clickable, frameTexture, imageTexture, x, y, z, scale, infoLink)
 {
 	loader.load( objPath, function ( obj ) {
 		obj.traverse( function ( child ) {
@@ -79,8 +79,8 @@ function addNewElement(loader, objPath, name, clickable, frameTexture, imageText
 			//console.log("clickables added ", obj);
 			clickables.push( obj );
 		}
-		// Map pictures and names
-		previewerMapper[name] = imageTexture;
+		// Map name and infoLink
+		previewerMapper[name] = infoLink;
 	});
 }
 
@@ -108,42 +108,13 @@ function onDocumentMouseDown( event ) {
 		{
 
 			//console.log("clicked object " + intersects[0].object.parent.name);
-
-			previewerMaterial = new THREE.MeshStandardMaterial({
-				map: previewerMapper[intersects[0].object.parent.name],
-			});
-			previewer.material = previewerMaterial;
-			previewer.position.set(0,100,-100);
-			previewer.visible = true;
 			
-			moreinfo.position.set(0,100,10);
-			moreinfo.visible = true;
+			setTimeout(function() { window.open(previewerMapper[intersects[0].object.parent.name], "More Info"); }, 100);
 		}
-		else if(intersects[0].object.name === "previewer")
-		{
-			//console.log("clicked previewer");
-			previewer.visible = false;
-			previewer.position.set(0,100,-10000);
-			
-			moreinfo.position.set(0,100,-10000);
-			moreinfo.visible = false;
-		}
-		else if(intersects[0].object.name === "moreinfo")
-		{
-			//console.log("clicked moreinfo");
-			
-			previewer.visible = false;
-			previewer.position.set(0,100,-10000);
-			
-			moreinfo.position.set(0,100,-10000);
-			moreinfo.visible = false;
-			// avoid evnt skipping
-			setTimeout(function() { window.open(infoLink, "More Info"); }, 100);
-		}		
     }
 }
 
-function MyObjLoader(loader, objPath, name, clickable, frameTexturePath, bodyTexturePath, x, y, z, scale, onComplete) 
+function MyObjLoader(loader, objPath, name, clickable, frameTexturePath, bodyTexturePath, link, x, y, z, scale, onComplete) 
 {
     this.objPath = objPath;
 	this.name = name;
@@ -161,7 +132,7 @@ function MyObjLoader(loader, objPath, name, clickable, frameTexturePath, bodyTex
 	
 	this.objLoader = function()
 	{
-		addNewElement(loader, objPath, name, clickable, self.frameTexture, self.bodyTexture, x, y, z, scale);
+		addNewElement(loader, objPath, name, clickable, self.frameTexture, self.bodyTexture, x, y, z, scale, link);
 	}
 	
 	this.bodyTextureLoader = function()
@@ -214,20 +185,20 @@ function init()
 	const loader = new OBJLoader( );		
 	
 	// OBJ model Photoframes 
-	var loader1 = new MyObjLoader(loader, 'models/simpleframe.obj', "picture1", true, 'images/brown.png', 'images/certif1.png', 0, -250, -580, 3).load();
-	var loader2 = new MyObjLoader(loader, 'models/simpleframe.obj', "picture2", true, 'images/brown.png', 'images/certif1.png', 570, -200, -580, 3).load();
-	var loader3 = new MyObjLoader(loader, 'models/simpleframe.obj', "picture3", true, 'images/brown.png', 'images/certif1.png', -570, -200, -580, 3).load();
-	var loader4 = new MyObjLoader(loader, 'models/simpleframe.obj', "picture4", true, 'images/brown.png', 'images/certif1.png', -270, 200, -580, 3).load();
-	var loader5 = new MyObjLoader(loader, 'models/simpleframe.obj', "picture5", true, 'images/brown.png', 'images/certif1.png', 370, 200, -580, 3).load();
+	var loader1 = new MyObjLoader(loader, 'models/simpleframe.obj', "picture1", true, 'images/brown.png', 'images/proj1.png', "https://r10.ieee.org/bangalore-cts/ctsoc-remote-internship-cohort-1/", 0, -250, -580, 3).load();
+	var loader2 = new MyObjLoader(loader, 'models/simpleframe.obj', "picture2", true, 'images/brown.png', 'images/proj2.png', "https://r10.ieee.org/bangalore-cts/ctsoc-remote-internship-cohort-1/", 570, -200, -580, 3).load();
+	var loader3 = new MyObjLoader(loader, 'models/simpleframe.obj', "picture3", true, 'images/brown.png', 'images/proj3.png', "https://r10.ieee.org/bangalore-cts/ctsoc-remote-internship-cohort-1/", -570, -200, -580, 3).load();
+	var loader4 = new MyObjLoader(loader, 'models/simpleframe.obj', "picture4", true, 'images/brown.png', 'images/proj4.png', "https://r10.ieee.org/bangalore-cts/ctsoc-remote-internship-cohort-1/", 0, 200, -580, 3).load();
+
 	// Text
-	var loader6 = new MyObjLoader(loader, 'models/text.obj', "text1", false, 'images/textcolor.png', 'images/textcolor.png', -250, -150, 10, 1).load();
+	var loader6 = new MyObjLoader(loader, 'models/text.obj', "text1", false, 'images/textcolor.png', 'images/textcolor.png', "", -250, -150, 10, 1).load();
 	// Viewing Table Primary
-	//var loader7 = new MyObjLoader(loader, 'models/table.obj', "table", false, 'images/lava.jpg', 'images/lava.jpg', -120, -150, -500, 3).load();
+	//var loader7 = new MyObjLoader(loader, 'models/table.obj', "table", false, 'images/lava.jpg', 'images/lava.jpg', "", -120, -150, -500, 3).load();
 	// OBJ model galleria
-	var loader8 = new MyObjLoader(loader, 'models/galleria.obj', "galleria", false, 'images/textcolor.png', 'images/textcolor.png', 0, 0, 0, 10).load();
+	var loader8 = new MyObjLoader(loader, 'models/galleria.obj', "galleria", false, 'images/textcolor.png', 'images/textcolor.png', "", 0, 0, 0, 10).load();
 	// bust1
-	var loader9 = new MyObjLoader(loader, 'models/spartan.obj', "spartan1", false, 'images/textcolor.png', 'images/textcolor.png', -3000, 850, -5580, 2).load();
-	var loader10 = new MyObjLoader(loader, 'models/spartan.obj', "spartan2", false, 'images/textcolor.png', 'images/textcolor.png', -3000, 750, -2080, 2).load();
+	var loader9 = new MyObjLoader(loader, 'models/spartan.obj', "spartan1", false, 'images/textcolor.png', 'images/textcolor.png', "", -3000, 850, -5580, 2).load();
+	var loader10 = new MyObjLoader(loader, 'models/spartan.obj', "spartan2", false, 'images/textcolor.png', 'images/textcolor.png', "", -3000, 750, -2080, 2).load();
 	
 	//var light1 = new THREE.PointLight(0xffffff);
 	//light1.position.set(-100,-550,200);
@@ -241,37 +212,6 @@ function init()
 	light.target.position.set(-5, -500, -600);
 	scene.add(light);
 	scene.add(light.target);
-	
-
-	// Add fullscreen preview hidden element
-	var previewTexture = new THREE.TextureLoader().load( 'images/moreinfo.png', function (texture) {
-		var previewerGeo = new THREE.PlaneGeometry( 1920, 1080 );
-		previewerMaterial = new THREE.MeshStandardMaterial({
-			map: texture,
-		});
-		previewer = new THREE.Mesh( previewerGeo );
-		previewer.material = previewerMaterial;
-		previewer.name = "previewer";
-		previewer.position.set(0,100,-10000);
-		previewer.visible = false;
-		scene.add( previewer );
-		clickables.push(previewer);
-	});
-	
-	// Add more info clickable
-	var moreinfoTexture = new THREE.TextureLoader().load( 'images/moreinfo.png', function (texture) {
-			var moreinfoGeo = new THREE.PlaneGeometry( 256, 128 );
-			moreinfoMaterial = new THREE.MeshStandardMaterial({
-				map: texture,
-			});
-			moreinfo = new THREE.Mesh( moreinfoGeo );
-			moreinfo.material = moreinfoMaterial;
-			moreinfo.name = "moreinfo";
-			moreinfo.position.set(0,100,-10000);
-			moreinfo.visible = false;
-			scene.add( moreinfo );
-			clickables.push(moreinfo);
-	} );
 }
 
 function animate() 

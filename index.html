@@ -36,6 +36,9 @@ var moreinfo, moreinfoMaterial;
 var container, scene, camera;
 var infoLink = "https://ewh.ieee.org/r10/bangalore/ces/";
 var renderer, controls;
+var certif_light1;
+var certif_light2;
+var switch_on = false;
 
 init();
 animate();
@@ -104,14 +107,18 @@ function onDocumentMouseDown( event ) {
     var intersects = ray.intersectObjects( clickables, true );
     if ( intersects.length > 0)
 	{
+		//console.log("clicked object " + intersects[0].object.parent.name);
 		if(intersects[0].object.name === "Plane") 
-		{
-
-			//console.log("clicked object " + intersects[0].object.parent.name);
-			
+		{	
 			setTimeout(function() { window.open(previewerMapper[intersects[0].object.parent.name], "More Info"); }, 100);
 		}
     }
+	if (switch_on === false)
+	{
+		scene.add(certif_light2);
+		scene.add(certif_light2.target);
+		switch_on = true;
+	}	
 }
 
 function MyObjLoader(loader, objPath, name, clickable, frameTexturePath, bodyTexturePath, link, x, y, z, scale, onComplete) 
@@ -200,18 +207,18 @@ function init()
 	var loader9 = new MyObjLoader(loader, 'models/spartan.obj', "spartan1", false, 'images/textcolor.png', 'images/textcolor.png', "", -3000, 850, -5580, 2).load();
 	var loader10 = new MyObjLoader(loader, 'models/spartan.obj', "spartan2", false, 'images/textcolor.png', 'images/textcolor.png', "", -3000, 750, -2080, 2).load();
 	
-	//var light1 = new THREE.PointLight(0xffffff);
-	//light1.position.set(-100,-550,200);
-	//scene.add(light1);
-	//const light = new THREE.AmbientLight(0xffffff, 0.5);
-	//scene.add(light);
+	//certif_light1 = new THREE.PointLight(0xffffff);
+	//certif_light1.position.set(0,-0,500);
+	//scene.add(certif_light1);
+
+	const light1 = new THREE.AmbientLight(0xffffff, 0.5);
+	scene.add(light1);
 	const color = 0xFFFFFF;
 	const intensity = 0.9;
-	const light = new THREE.DirectionalLight(color, intensity);
-	light.position.set(500, 850, 600);
-	light.target.position.set(-5, -500, -600);
-	scene.add(light);
-	scene.add(light.target);
+	certif_light2 = new THREE.DirectionalLight(color, intensity);
+	certif_light2.position.set(500, 850, 600);
+	certif_light2.target.position.set(-5, -500, -600);
+
 }
 
 function animate() 
